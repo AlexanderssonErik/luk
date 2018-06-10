@@ -1,0 +1,142 @@
+
+
+<!doctype html>
+<!--
+
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    
+    <title>Car test</title>
+
+  </head>
+
+  <body>
+
+
+<h3>Car1</h3>
+
+
+<p onclick="onButtonClick()">Connect</p>
+<h3>-----------</h3>
+<p onclick="gattWrite()">Write First Time/0 blocks</p>
+<p onclick="gattWriteA()">Write 10 blocks  </p>
+<p onclick="gattWriteB()">Write 20 blocks (one 2x4 = 2 blocks)</p>
+
+<script>
+
+
+	var gattServer;
+        var gattService;
+        var gattCharacteristic;
+	var busy;
+
+	function handleError(error) {
+          console.log('EAEA error=' + error);
+
+        }
+
+function sendCommand(cmd) {
+
+ return gattCharacteristic.writeValue(cmd).then(() => {
+              busy = false;
+            });
+}
+
+
+function gattWrite() {
+ console.log('gattWrite');
+ let cmd = new Uint8Array([0x80, 0x11, 0x11, 0x81]);
+
+  sendCommand(cmd).then(() => {
+            console.log('gattWrite sent');
+           
+ })
+ .catch(handleError);
+
+}
+
+function gattWriteA() {
+ console.log('gattWrite');
+ let cmd = new Uint8Array([0x80, 0x11, 0x11, 0x11, 0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11, 0x81]);
+
+  sendCommand(cmd).then(() => {
+            console.log('gattWrite sent');
+           
+ })
+ .catch(handleError);
+
+}
+
+function gattWriteB() {
+ console.log('gattWrite');
+ let cmd = new Uint8Array([0x80, 0x11, 0x11, 0x11, 0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11, 0x11, 0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11,0x11, 0x81]);
+
+  sendCommand(cmd).then(() => {
+            console.log('gattWrite sent');
+           
+ })
+ .catch(handleError);
+
+}
+
+function onButtonClick() {
+
+
+	
+
+
+
+
+
+	console.log('EAEA Connecting...');
+
+	navigator.bluetooth.requestDevice({
+                filters: [{
+                  services: ['65333333-a115-11e2-9e9a-0800200ca100']
+                  
+			      
+                }]
+	})
+	.then(device => {
+                console.log('EAEA Connecting to GATT Server...');
+                return device.gatt.connect();
+	})
+	.then(server => {
+                console.log('EAEA Found GATT server');
+                gattServer = server;
+                //Get service
+                return gattServer.getPrimaryService('65333333-a115-11e2-9e9a-0800200ca100');
+	})
+	.then(service => {
+                console.log('EAEA Found GATT service');
+                gattService = service;
+                // Get characteristic
+                return gattService.getCharacteristic('65333333-a115-11e2-9e9a-0800200ca102');
+	})
+  	.then(characteristic => {
+                console.log('EAEA Found characteristic');
+                gattCharacteristic = characteristic;
+
+  		// Listen to device notifications
+		return gattCharacteristic.startNotifications().then(() => {
+			gattCharacteristic.addEventListener('characteristicvaluechanged', event => {
+				console.log('EAEA characteristicvaluechanged = ' + event.target.value + ' [' + event.target.value.byteLength +']');
+
+			});
+
+		});
+	})
+	.catch(handleError);
+}
+
+</script>
+    
+
+
+
+    
+
+  </body>
+</html>

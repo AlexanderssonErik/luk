@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html>
+ <head>
+    <title>bilo</title>
+    <script src="earcut.js"></script>
+    <script src="babylon.js"></script>
+    <script src="babylon.gui.js"></script>
+    <script src="ble.js"></script>
+    <script src="global.js"></script>
+    <script src="camera.js"></script>
+    <script src="button.js"></script>
+    <script src="block.js"></script>
+    <script src="algoBlock.js"></script>
+    <script src="blockPixel.js"></script>
+    <script src="algoBlockPixel.js"></script>
+    <script src="projection.js"></script>
+    <script src="projectionPixel.js"></script>
+    <script src="algoProjection.js"></script>
+
+    <script src="world.js"></script>
+  
+    <script src="base.js"></script>
+    <script src="animateWinning.js"></script>
+    
+
+    <script src="guiSettings.js"></script>
+    <script src="guiColorSelect.js"></script>    
+    <script src="compass.js"></script>
+    <script src="game.js"></script>
+    <script src="guiGame.js"></script>
+    <script src="activeGame.js"></script>
+
+    <script src="guidedBuild.js"></script>
+    <script src="guidedBuildLevel.js"></script>
+    
+    <script src="tangram.js"></script>
+    <script src="tangramLevel.js"></script>
+
+    <script src="tangramFree.js"></script>
+    <script src="tangramFreeLevel.js"></script>
+
+
+
+
+
+
+    <style>
+
+html,body, can {
+		width:100%;
+		height:100%;
+		padding:0;
+		margin:0;
+		overflow:hidden;
+       
+	}
+	
+	
+	#renderCanvas {
+		width: 100%;
+		height: 100%;
+        touch-action: none;      
+	
+	}
+
+    </style>
+
+ <!-- <script src="https://cdn.babylonjs.com/babylon.js"></script>  -->
+ <script src="https://code.jquery.com/pep/0.4.1/pep.js"></script>
+
+ </head>
+ <body>
+    <canvas id="renderCanvas" touch-action="none"></canvas>
+
+    <script>
+   
+        //let remove = 0;
+
+        let debugCom = false;
+ 
+      
+        let bleTimeOut;
+        
+        let fpsCounter = 0;
+        let textBattery;
+
+        let textFps;
+        let fpsTimeOut;
+        let guiFps = 60;
+
+       // let biloRenderBlocks = true;
+
+
+     //   var pitchY = 1.19;
+
+        let receivedData = [];
+      //  var blocksUpdated = 0;
+        var blocksReceiving = 0;
+        /*var blocksCount = 0;
+        var blocksOngoingCount = 0;
+        var blocksOngoingOffset = 100;// (0/100)
+        var blocksOffset = 0;// (0/100)
+*/
+       // var baseLED = [0x00,0x11];
+        var baseCompass = [-90,0,0];
+
+
+
+/*
+
+        ^
+        X
+        |
+<Z------0
+//front
+
+*/
+
+
+base.ledSetLeft(globalWorldColor.cyan);
+    base.ledSetRight(globalWorldColor.magenta);
+
+//biloBaseLED.startBlink(2000);
+//biloBaseLED.stopBlink();
+
+        //biloBaseLED.setFront(3);
+//console.log("biloBaseLED.hex[0]" + biloBaseLED.hex[0]);
+
+        //Game and level settings
+
+        //0 = not selected
+        //2 = Tangram
+
+
+
+        
+
+       // biloNumberWin[6] = 0;
+   
+      //  blocksOffset = 100;// (0/100)
+      //  blocksOngoingOffset = 0;
+
+      
+
+//---
+
+
+
+ 
+        
+  
+
+
+
+       
+        var canvas = document.getElementById("renderCanvas");
+        var engine = new BABYLON.Engine(canvas, true);
+        //engine.disableUniformBuffers = true;  //REMOVE
+        var biloScene = new BABYLON.Scene(engine);
+        biloScene.clearColor  = new BABYLON.Color3(1, 1, 1);
+        biloScene.clearColor  = new BABYLON.Color3(0.7, 0.8, 0.9);
+
+        //Color Wheel
+        //var colorWheelActive = 0;
+
+        
+        //BLE
+        var gattServer;
+        var gattService;
+        var gattCharacteristic;
+	    var busy = false;
+        var BLEdebug = 0;
+
+//scene.ambientColor = new BABYLON.Color3(1, 1, 1);
+
+//base
+
+
+//initShapes(biloScene);
+
+
+//guiInitSettingsMenu(biloScene);
+
+//guiAnimateInit(biloScene);
+
+
+
+//gameInit();
+
+
+
+world.init(biloScene);
+game.init(biloScene);
+camera.init(biloScene);
+compass.init(biloScene, base);
+base.init(biloScene);
+ble.init();
+animateWinning.init(biloScene);
+
+
+guiGame.init(biloScene);
+//guiGame.showOkButton();
+
+
+
+guiSettings.init(biloScene);
+guiColorSelect.init(biloScene, base);
+base.init
+projection.init(biloScene);
+
+let scene = biloScene;
+// addBlock: function(x,y,z,rotation,twobytwo,plasticColor){
+ /*world.addBlock(0,0,0,0,false,0);
+  world.endAddBlock();*/
+//!!!!
+ /*  game.addBlock(0,0,0,3,true,0);
+  game.endAddBlock();
+*/
+ // activeGame.setGame(games.guidedBuild);
+ // activeGame.render();
+//!!!!!!
+
+    var advancedTextureFPS = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    
+    textFps = new BABYLON.GUI.TextBlock();
+    textFps.text = "FPS: ";
+    textFps.color = "white";
+    textFps.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+    textFps.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+
+    textFps.fontSize = 24;
+    advancedTextureFPS.addControl(textFps);    
+
+    fpsTimeOut = setTimeout(guiFpsFunction, 1000);
+
+
+function guiFpsFunction() {
+    
+    //textFps.text = fpsCounter;
+    textFps.text = "FPS: " + fpsCounter;
+    clearTimeout(guiFpsFunction);
+    
+    guiFps = fpsCounter;
+    fpsCounter = 0;
+    fpsTimeOut = setTimeout(guiFpsFunction, 1000);
+
+    //console.log(camera.alpha);
+    //console.log(camera.alpha%(Math.PI/4));
+    //console.log((camera.alpha%(Math.PI/4)) - Math.PI/8);
+    
+}
+
+
+
+var advancedTextureBattery = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    
+        textBattery = new BABYLON.GUI.TextBlock();
+        textBattery.text = "Battery: ";
+        textBattery.color = "white";
+        textBattery.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+        textBattery.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    
+        textBattery.fontSize = 24;
+        advancedTextureBattery.addControl(textBattery);    
+
+
+
+
+        //GUI ---
+
+        var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+ 
+
+    function consolePrintBlocks(tmpString, tmpArray){
+
+            
+
+        for(var i = 0; i <blocksCount; i++){
+    if(i!=0){
+        tmpString += ",";
+    } 
+    tmpString += tmpArray[i];
+}
+
+tmpString += "];";
+console.log(tmpString);
+
+}
+
+    
+    var buttonPrintBlockConfig = BABYLON.GUI.Button.CreateSimpleButton("butPrint", "Print");
+    buttonPrintBlockConfig.width = "150px"
+    buttonPrintBlockConfig.height = "40px";
+    buttonPrintBlockConfig.paddingTop = "10px";
+    buttonPrintBlockConfig.paddingRight = "10px";
+    buttonPrintBlockConfig.color = "white";
+    buttonPrintBlockConfig.cornerRadius = 20;
+    buttonPrintBlockConfig.background = "green";
+    buttonPrintBlockConfig.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    buttonPrintBlockConfig.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;   
+
+    let alevel = 3;
+    let adifficulty = 4;
+    let astage = 0;
+
+    buttonPrintBlockConfig.onPointerUpObservable.add(function() {
+
+
+
+
+    world.printBlock(alevel, adifficulty, astage);
+    astage++;
+
+    });
+
+    advancedTexture.addControl(buttonPrintBlockConfig);
+    
+    console.log("56%0:" + 56%0);
+ 
+                                  //When pointer down event is raised
+    let pointerIsDown;
+    //let snapDistance = (Math.PI/4);
+
+    //let snapDistanceOffset = (Math.PI/4);
+
+   // let snapCameraLastAlpha = 0;
+
+    biloScene.onPointerMove = function (evt, pickResult){
+
+guiSettings.pointerMove();
+guiGame.pointerMove();
+guiColorSelect.pointerMove();
+
+};
+
+    biloScene.onPointerDown = function (evt, pickResult) {
+        camera.pointerDown();
+        guiSettings.pointerDown();
+        guiGame.pointerDown();
+   
+
+        guiColorSelect.pointerDown(pickResult);
+       
+        
+    //}
+    };
+
+                //When pointer down event is raised
+                biloScene.onPointerUp = function (evt, pickResult) {
+                    camera.pointerUp();
+                    guiSettings.pointerUp();
+                    guiGame.pointerUp();
+                    guiColorSelect.pointerUp();
+                   
+              
+                
+
+  
+
+
+                    
+                
+                    };
+
+    //camera .alpha snapper 
+
+
+
+        engine.runRenderLoop(function () {
+
+           compass.render();  
+            base.render();
+            world.render();
+            //!!!
+            game.render();
+            activeGame.render();
+           //!!!
+           fpsCounter++;
+            biloScene.render();
+        });
+
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+
+
+        
+    </script>
+ </body>
+</html>

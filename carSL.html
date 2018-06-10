@@ -1,0 +1,115 @@
+
+
+<!doctype html>
+<!--
+
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    
+    <title>Car test</title>
+
+  </head>
+
+  <body>
+
+
+<h3>Car1</h3>
+
+
+<p onclick="onButtonClick()">Connect</p>
+<h3>-----------</h3>
+<p onclick="gattWrite()">Write</p>
+
+<script>
+
+
+	var gattServer;
+        var gattService;
+        var gattCharacteristic;
+	var busy;
+
+	function handleError(error) {
+          console.log('EAEA error=' + error);
+
+        }
+
+function sendCommand(cmd) {
+
+ return gattCharacteristic.writeValue(cmd).then(() => {
+              busy = false;
+            });
+}
+
+
+function gattWrite() {
+ console.log('gattWrite');
+ let cmd = new Uint8Array([0x80, 0x11, 0x11, 0x81]);
+
+  sendCommand(cmd).then(() => {
+            console.log('gattWrite sent');
+           
+ })
+ .catch(handleError);
+
+}
+
+function onButtonClick() {
+
+
+	
+
+
+
+
+
+	console.log('EAEA Connecting...');
+
+	navigator.bluetooth.requestDevice({
+                filters: [{
+                  services: ['4880c12c-fdcb-4077-8920-a450d7f9b907']
+			      
+                }]
+	})
+	.then(device => {
+                console.log('EAEA Connecting to GATT Server...');
+                return device.gatt.connect();
+	})
+	.then(server => {
+                console.log('EAEA Found GATT server');
+                gattServer = server;
+                //Get service
+                return gattServer.getPrimaryService('4880c12c-fdcb-4077-8920-a450d7f9b907');
+	})
+	.then(service => {
+                console.log('EAEA Found GATT service');
+                gattService = service;
+                // Get characteristic
+                return gattService.getCharacteristic('fec26ec4-6d71-4442-9f81-55bc21d658d6');
+	})
+  	.then(characteristic => {
+                console.log('EAEA Found characteristic');
+                gattCharacteristic = characteristic;
+
+  		// Listen to device notifications
+		return gattCharacteristic.startNotifications().then(() => {
+			gattCharacteristic.addEventListener('characteristicvaluechanged', event => {
+				console.log('EAEA characteristicvaluechanged = ' + event.target.value + ' [' + event.target.value.byteLength +']');
+
+			});
+
+		});
+	})
+	.catch(handleError);
+}
+
+</script>
+    
+
+
+
+    
+
+  </body>
+</html>
